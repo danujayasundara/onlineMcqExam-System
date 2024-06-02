@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam</title>
+    <link rel="stylesheet" th:href="@{../css/styles.css}">
+    <style>
+    	.pagination {
+            display: flex;
+            justify-content: flex-end; /* Aligns pagination to the right */
+            margin-top: 20px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: flex-end; /* Aligns pagination to the right */
+            margin-top: 20px;
+        }
+        .pagination button {
+			width: 100px;
+			margin-left: 5px;
+			margin-right: 5px;
+		}
+		
+		.pagination button:disabled {
+            background-color: #d3d3d3; /* Disabled button background color */
+            cursor: not-allowed; /* Change cursor to not-allowed when button is disabled */
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <div class="mainheader">
+            <img src="image/logo.png" alt="Logo">
+            <h1>Edueye</h1>
+        </div>
+    </header>
+
+    <div class="teachermain">
+        <div class="tdashboard">
+            <ul>
+                <li><a th:href="@{/admin-page}">Home</a></li>
+                <li><a th:href="@{/exams(userId=${userId})}">Exam</a></li>
+                <!--<li><a href="attendance.html">Attendance</a></li>
+                <li><a href="overallresult.html">Overall Result</a></li>-->
+                <li><a th:href="@{/logout}">Logout</a></li>
+            </ul>
+        </div>
+        <div class="examcontent">
+            <div class="up">
+                <div id="eleft">
+                    <div class="searchbar">
+					    <div class="searchbar">
+						    <form id="searchForm">
+							    <input type="text" id="searchInput" name="examName" placeholder="Search by exam name...">
+							    <button id="searchButton" type="button" onclick="searchExamsByName()">Search</button>
+							</form>
+						</div>
+					</div>
+                </div>
+                <div id="eright">
+                    <!--<form action="singleexam.html" method="post">-->
+                    <!--<form th:action="@{/add}" method="post">
+  						<button class="addbutton">New Exam</button>
+					</form>-->
+					<button onclick="goToNewExamPage()">New Exam</button>
+  
+                </div>
+            </div>
+            
+            <div class="down">
+                <div id="tablecontainer">
+                    <table id="examtable">
+                        <thead>
+                             <tr>
+                                <th>Exam</th>
+                                <th>Last Updated</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>  
+                <div class="pagination">
+                    <button id="prevPage" onclick="changePage(-1)">Previous</button>
+                    <span id="pageInfo">Page 1</span>
+                    <button id="nextPage" onclick="changePage(1)">Next</button>
+                </div> 
+            </div>
+            
+            
+        </div>
+    </div>
+    <script th:inline="javascript">
+        const userId = sessionStorage.getItem('userId');
+		
+		function goToNewExamPage() {
+		    window.location.href = "/addnewExam";
+		}
+		
+		function searchExamsByName() {
+		    const examName = document.getElementById("searchInput").value.trim();
+		    const userId = sessionStorage.getItem('userId');
+		    const pageSize = 10;
+		    const page = 0; // Start from the first page when searching
+		    
+		    fetch(`/user/${userId}/exams?page=${page}&size=${pageSize}&examName=${encodeURIComponent(examName)}`)
+		        .then(response => {
+		            if (!response.ok) {
+		                throw new Error('Network response was not ok');
+		            }
+		            return response.json();
+		        })
+		        .then(data => {
+		            if (data.content.length === 0) {
+		                // Display an alert if no exams are found
+		                alert('No exams found for the entered name.');
+		            } else {
+		                // Store fetched exams in localStorage
+		                sessionStorage.setItem('filteredExams', JSON.stringify(data.content));
+		                console.log("Total pages",data.totalPages);
+		                populateTable(data.content);
+		                updatePageInfo(data.number, data.totalPages);
+		            }
+		        })
+		        .catch(error => {
+		            console.error('Error fetching data:', error);
+		        });
+		}
+		
+		let currentPage = 0;
+		const pageSize = 10;
+		
+		document.addEventListener("DOMContentLoaded", function() {
+		    loadExams(currentPage, pageSize);
+		});
+		
+		function changePage(direction) {
+		    currentPage += direction;
+		    loadExams(currentPage, pageSize);
+		}
+		
+		function loadExams(page, size) {
+		    const userId = sessionStorage.getItem('userId');
+		    fetch(`/user/${userId}/exams?page=${page}&size=${size}`)
+		        .then(response => response.json())
+		        .then(data => {
+		            // Store fetched exams in localStorage
+		            sessionStorage.setItem('exams', JSON.stringify(data.content));
+		            populateTable(data.content);
+		            updatePageInfo(data.number, data.totalPages);
+		        })
+		        .catch(error => {
+		            console.error('Error fetching data:', error);
+		        });
+		}
+		
+		function populateTable(exams) {
+		    const tbody = document.querySelector('#examtable tbody');
+		    tbody.innerHTML = '';
+		    exams.forEach(exam => {
+		        const row = `<tr>
+		            <td><a href="javascript:void(0);" onclick="passExamDetails(${exam.examId})">${exam.examName}</a></td>
+		            <td>${exam.dateTime}</td>
+		            <td>${exam.eStatus ? 'Published' : 'Draft'}</td>
+		        </tr>`;
+		        tbody.insertAdjacentHTML('beforeend', row);
+		    });
+		}
+		
+		function updatePageInfo(currentPage, totalPages) {
+		    document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${totalPages}`;
+		    document.getElementById('prevPage').disabled = currentPage === 0;
+		    document.getElementById('nextPage').disabled = currentPage === totalPages - 1 || totalPages === 1;
+		}
+		
+		
+		function passExamDetails(examId) {
+		    const storedExams = sessionStorage.getItem('exams');
+		
+		    if (storedExams) {
+		        const exams = JSON.parse(storedExams);
+		        const selectedExam = exams.find(exam => exam.examId === examId);
+		
+		        if (selectedExam) {
+		            if (selectedExam.eStatus) {
+		                window.location.href = '/ongoingExam/' + examId;
+		            } else {
+		                localStorage.setItem('selectedExam', JSON.stringify(selectedExam));
+		                localStorage.setItem('selectedExamId', selectedExam.examId);
+		                const url = `/newExam?examId=${selectedExam.examId}`;
+		                window.location.href = url;
+		            }
+		        } else {
+		            console.error('Exam not found in localStorage.');
+		        }
+		    } else {
+		        console.error('No exams data found in localStorage.');
+		    }
+		}
+    </script>
+
+
+    <footer>
+        <div class="mainfooter">
+            &copy; 2024 EduEye. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>

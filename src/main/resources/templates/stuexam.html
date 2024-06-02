@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exams</title>
+    <link rel="stylesheet" th:href="@{../css/stustyle.css}">
+    <style>
+    	.examLink {
+	    cursor: pointer; /* Set cursor to pointer on hover */
+	    color: blue; /* Optional: Change link color */
+	    
+	}
+	.endedExam .examLink {
+    color: gray; /* Gray color for ended exams */
+}
+		.pagination {
+            display: flex;
+            justify-content: flex-end; /* Aligns pagination to the right */
+            margin-top: 20px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: flex-end; /* Aligns pagination to the right */
+            margin-top: 20px;
+        }
+        .pagination button {
+			width: 100px;
+			margin-left: 5px;
+			margin-right: 5px;
+		}
+		.pagination button:disabled {
+            background-color: #d3d3d3; /* Disabled button background color */
+            cursor: not-allowed; /* Change cursor to not-allowed when button is disabled */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="mainheader">
+            <img src="image/logo.png" alt="Logo">
+            <h1>Edueye</h1>
+        </div>
+    </header>
+
+    <div class="stumain">
+        <div class="studashboard">
+            
+            <ul>
+                <li><a th:href="@{/user-page}">Home</a></li>
+                <li><a th:href="@{/stuexam}">Exam</a></li>
+                <!--<li><a href="sturesult.html">Result</a></li>-->
+                <li><a th:href="@{/logout}">Logout</a></li>
+            </ul>
+        </div>
+        <div class="examrightcont">
+            <div class="searchtable">
+                <table>
+                    <tr>
+                    	<form id="searchForm">
+						    <th><input type="text" id="searchInput" placeholder="Search by exam name..."></th>
+						    <th><button type="button" id="searchButton" onclick="searchExamsByName()">Search</button></th>
+						</form>
+                    </tr>
+                </table>
+            </div>
+            <div class="examtable">
+                <table>
+	                <thead>
+	                    <tr>
+	                        <th id="exam"><a href="exampaper.html">Exam</a></th>
+	                        <th>Starting Time</th>
+	                        <th>Exam Duration</th>
+	                        <th>Status</th>
+	                    </tr>
+	                </thead>
+                    <tbody id="examBody">
+			            
+        			</tbody>
+                </table>
+            </div>
+            <div class="pagination">
+			    <button id="prevPage" onclick="changePage(-1)">Previous</button>
+			    <span id="pageInfo"></span>
+			    <button id="nextPage" onclick="changePage(1)">Next</button>
+			</div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="mainfooter">
+            &copy; 2024 EduEye. All rights reserved.
+        </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script th:inline="javascript">
+    
+    	var userId = sessionStorage.getItem('userId');
+	    console.log('User Id in local', userId);
+	    
+		document.addEventListener("DOMContentLoaded", function() {
+		    loadExams(currentPage, pageSize);
+		});
+		
+		let currentPage = 0;
+		const pageSize = 10;
+		let totalPages = 0; // Define totalPages globally
+		
+		function loadExams(page, size) {
+		    const userId = sessionStorage.getItem('userId');
+		    let allExams, attendedExams, endedExams;
+		
+		    fetch(`/all?page=${page}&size=${size}`)
+		        .then(response => response.json())
+		        .then(data => {
+		            allExams = data.content;
+		            totalPages = data.totalPages; // Update totalPages
+		
+		            fetch(`/user/${userId}/attended`)
+		                .then(response => response.json())
+		                .then(data => {
+		                    attendedExams = data;
+		
+		                    fetch('/ended-exams')
+		                        .then(response => response.json())
+		                        .then(data => {
+		                            endedExams = data;
+		                            
+		                            if (endedExams) {
+		                                populateExamTable(allExams, attendedExams, endedExams);
+		                                updatePageInfo(currentPage, totalPages); // Update page info here
+		                            } else {
+		                                console.error('Error fetching ended exams: endedExams is undefined or null');
+		                            }
+		                        })
+		                        .catch(error => console.error('Error fetching ended exams:', error));
+		                })
+		                .catch(error => console.error('Error fetching attended exams:', error));
+		        })
+		        .catch(error => console.error('Error fetching all exams:', error));
+		}
+		
+		function updatePageInfo(currentPage, totalPages) {
+		    document.getElementById('pageInfo').textContent = `Page ${currentPage + 1} of ${totalPages}`;
+		    document.getElementById('prevPage').disabled = currentPage === 0;
+		    document.getElementById('nextPage').disabled = currentPage === totalPages - 1;
+		}
+		
+		function changePage(direction) {
+		    currentPage += direction;
+		    loadExams(currentPage, pageSize);
+		}
+		
+		
+		function searchExamsByName() {
+		    const searchInput = document.getElementById('searchInput').value.trim(); // Get the search term
+		    currentPage = 0; // Reset current page to 0 when performing a search
+		
+		    if (searchInput !== '') {
+		        fetch(`/all?eStatus=true&page=${currentPage}&size=${pageSize}&name=${searchInput}`)
+		            .then(response => response.json())
+		            .then(data => {
+		                const allExams = data.content;
+		                const attendedExams = []; // Assuming these are empty for the search
+		                const endedExams = []; // Assuming these are empty for the search
+		                if (allExams.length === 0) {
+		                    alert('No exams found for the given search term.');
+		                } else {
+		                    populateExamTable(allExams, attendedExams, endedExams); // Update the table with filtered results
+		                    updatePageInfo(currentPage, data.totalPages); // Update pagination info
+		                }
+		            })
+		            .catch(error => console.error('Error fetching filtered exams:', error));
+		    } else {
+		        loadExams(currentPage, pageSize); // If search input is empty, load all exams
+		    }
+		}
+		
+	function populateExamTable(allExams, attendedExams, endedExams) {
+	    var examBody = document.getElementById('examBody');
+	    // Clear any existing rows if needed
+	    examBody.innerHTML = '';
+	
+	    // Loop through the allExams and create a row for each exam
+	    allExams.forEach(exam => {
+	        var row = document.createElement('tr');
+	        var examNameCell = document.createElement('td');
+	        examNameCell.textContent = exam.examName;
+	        examNameCell.classList.add('examLink');
+	        var startingTimeCell = document.createElement('td');
+	        startingTimeCell.textContent = exam.dateTime;
+	        var durationCell = document.createElement('td');
+	        durationCell.textContent = exam.duration;
+	
+	        // Find the corresponding attended exam, if it exists
+	        var attendedExam = attendedExams.find(aExam => aExam.examId === exam.examId);
+	        var statusCell = document.createElement('td');
+	        statusCell.textContent = attendedExam && attendedExam.attended ? 'Attended' : 'Pending';
+	
+	        row.appendChild(examNameCell);
+	        row.appendChild(startingTimeCell);
+	        row.appendChild(durationCell);
+	        row.appendChild(statusCell);
+	
+	        examBody.appendChild(row);
+	
+	        // Add link and functionality to each exam name cell
+	        examNameCell.addEventListener('click', function() {
+	            checkExamStatusAndRedirect(exam.examId, sessionStorage.getItem('userId'));
+	        });
+	        
+	        if (endedExams.some(eExam => eExam.examId === exam.examId)) {
+	            row.classList.add('endedExam');
+	        }
+	        
+	    });
+	}
+	
+	function checkExamStatusAndRedirect(examId, userId) {
+	    sessionStorage.setItem('examId', examId);
+	    fetch(`/hasExamEndedAndNotAttempted?examId=${examId}&userId=${userId}`)
+	        .then(response => response.json())
+	        .then(data => {
+	            if (data.result) { // If exam ended with no attempt
+	                window.location.href = `/result/${examId}/${userId}`;
+	            } else {
+	                // Check if the user has attended the exam
+	                fetch(`/hasUserAttendedExam?examId=${examId}&userId=${userId}`)
+	                    .then(response => response.json())
+	                    .then(data => {
+	                        if (data.result) { // If user already attended the exam
+	                            window.location.href = `/result/${examId}/${userId}`;
+	                        } else {
+	                            window.location.href = `/${examId}/questions?examId=${examId}&userId=${userId}`;
+	                        }
+	                    })
+	                    .catch(error => console.error('Error:', error));
+	            }
+	        })
+	        .catch(error => console.error('Error:', error));
+	}
+	
+ </script>
+</body>
+</html>

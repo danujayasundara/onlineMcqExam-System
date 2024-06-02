@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Results</title>
+    <link rel="stylesheet" th:href="@{/css/stustyle.css}">
+</head>
+<body>
+    <header>
+        <div class="mainheader">
+            <img src="image/logo.png" alt="Logo">
+            <h1>Edueye</h1>
+        </div>
+    </header>
+
+    <div class="stumain">
+        <div class="studashboard">
+           <ul>
+                <li><a th:href="@{/user-page}">Home</a></li>
+                <li><a th:href="@{/stuexam}">Exam</a></li>
+                <li><a th:href="@{/logout}">Logout</a></li>
+            </ul>
+        </div>
+        <div class="sturesultmain">
+            <div class="stuexamresult">
+                <h3 id="examNameMain"></h3>
+        
+                <div class="stufinalresult">
+                  <table id="stugrade">
+                      <tr>
+                          <td id="examStatus">Exam Completed</td>
+                      </tr>
+                      <tr>
+                            <th th:text="${passFail}">Display pass or fail</th>
+                        </tr>
+                        <tr>
+                            <th th:text="${grade} + ' ' + ${result} + ' points'">Display grade and result</th>
+                        </tr>
+                  </table>
+                </div>
+        
+              </div>
+              <div class="stuquestion">
+                <div class="stuquestionreviewtable">
+                  <table id="stureview">
+                      <tr>
+                          <td>Questions</td>
+                      </tr>
+                      <tr th:each="review : ${questionReviews}">
+                            <td th:text="${review.question.question_content}">Question Text</td>
+                            <td th:text="${review.isAnswerCorrect ? 'Correct' : 'Wrong'}">Correct/Wrong</td>
+                        </tr>
+                  </table>
+                </div>
+              </div>
+              <div class="stubtn">
+                <table>
+                    <tr>
+                        <th><button onclick="goToStuExamPage()">Close</button></th>
+                    </tr>
+                </table>
+              </div>
+        </div>
+    </div>
+    
+ <script>
+ 	
+ 	function getExamIdFromUrl() {
+	    var url = window.location.href;
+	    var examIdIndex = url.indexOf('/result/') + '/result/'.length; 
+	    var examId = url.substring(examIdIndex, url.indexOf('/', examIdIndex)); 
+	
+	    return examId;
+	}
+	    
+	function fetchAndDisplayExamName() {
+	    const examId = getExamIdFromUrl();
+	    fetch('/exam/' + examId)
+	        .then(response => {
+	            if (!response.ok) {
+	                throw new Error('Network response was not ok');
+	            }
+	            return response.json();
+	        })
+	        .then(data => {
+	            console.log('Exam Details:', data); 
+	            const examNameElement = document.getElementById('examNameMain');
+	            if (examNameElement) {
+	                examNameElement.textContent = data.examName;
+	            }
+	        })
+	        .catch(error => {
+	            console.error('Error fetching exam details:', error);
+	        });
+	}
+	
+	function fetchExamEndedStatusAndUpdate() {
+	    const examId = getExamIdFromUrl();
+	    
+	    fetch(`/hasExamEnded?examId=${examId}`)
+	        .then(response => response.json())
+	        .then(data => {
+	            if (data.result) {
+	                document.getElementById('examStatus').textContent = 'Exam Ended';
+	            } else {
+	                document.getElementById('examStatus').textContent = 'Exam Completed';
+	            }
+	        })
+	        .catch(error => {
+	            console.error('Error fetching exam status:', error);
+	        });
+	}
+
+	document.addEventListener('DOMContentLoaded', function() {
+	    fetchAndDisplayExamName();
+	    fetchExamEndedStatusAndUpdate();
+	});
+
+    function goToStuExamPage() {
+        window.location.href = "/stuexam"; 
+    }
+    
+</script>
+
+    <footer>
+        <div class="mainfooter">
+            &copy; 2024 EduEye. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
