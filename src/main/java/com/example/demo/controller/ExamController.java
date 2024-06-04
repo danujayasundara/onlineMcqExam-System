@@ -235,12 +235,12 @@ public class ExamController {
 	          @RequestParam(defaultValue = "true") boolean eStatus,
 	          @RequestParam(defaultValue = "0") int page,
 	          @RequestParam(defaultValue = "10") int size,
-	          @RequestParam(required = false) String name) {  // Change the parameter name to match frontend
+	          @RequestParam(required = false) String name) {  
 	      Pageable pageable = PageRequest.of(page, size);
 	      Page<Exam> examsPage;
 	     // Page<SendExamDto> examDtos;
 
-	      if (name != null && !name.isEmpty()) {  // Check if name parameter is provided
+	      if (name != null && !name.isEmpty()) { 
 	    	  examsPage = examServiceImpl.getExamsByExamNameAndEStatus(eStatus, name, pageable);
 	      } else {
 	    	  examsPage = examServiceImpl.getExamsByeStatus(eStatus, pageable);
@@ -479,18 +479,18 @@ public class ExamController {
 	  @GetMapping("/getRemainingTime/{examId}")
 	  public ResponseEntity<Map<String, Long>> getRemainingTime(@PathVariable("examId") Long examId) {
 	      Exam exam = examServiceImpl.getExamById(examId);
-	      LocalDateTime startTime = exam.getDateTime(); // Get start time from the exam details
-	      int durationMinutes = exam.getDuration(); // Get duration in minutes from the exam details
+	      LocalDateTime startTime = exam.getDateTime(); 
+	      int durationMinutes = exam.getDuration(); 
 
 	      LocalDateTime endTime = startTime.plusMinutes(durationMinutes);
 	      LocalDateTime currentTime = LocalDateTime.now();
 
 	      long remainingSeconds = Duration.between(currentTime, endTime).getSeconds();
-	      remainingSeconds = Math.max(remainingSeconds, 0); // Ensure remaining time is not negative
+	      remainingSeconds = Math.max(remainingSeconds, 0); 
 
 	      Map<String, Long> response = new HashMap<>();
 	      response.put("remainingSeconds", remainingSeconds);
-	      System.out.println("Remaining time for exam " + examId + ": " + remainingSeconds + " seconds"); // Log statement
+	      System.out.println("Remaining time for exam " + examId + ": " + remainingSeconds + " seconds"); 
 	      return ResponseEntity.ok(response);
 	  }
 

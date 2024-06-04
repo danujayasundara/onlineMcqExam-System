@@ -291,39 +291,7 @@
             questionForm.style.display = 'block';
         }); */
         
-         $(document).ready(function () { 
-			let isPublished = false;
-	    	//let examId = localStorage.getItem('selectedExamId');
-	    	// let examId = parseInt(localStorage.getItem('selectedExamId'));
-	    	console.log('Selected Exam ID for publish exam:', selectedExamId);
-			
-			function publishExam(){
-				isPublished = isPublished === true ? false : true;
-				// alert('Button click');
-				//isPublished = !isPublished;
-				let currentTime = Date.now();
-		        console.log('Current Time:', currentTime);
-		        localStorage.setItem('currentTime_' + examId2, currentTime.toString());
-				$.ajax({
-			        type: 'PUT',
-			        url: '/exams/' + examId2 + '/status',
-			        contentType: 'application/json',
-			        data: JSON.stringify({ status: isPublished }),
-			        success: function (response) {
-			            console.log(response);
-			           
-			            window.location.href = '/ongoingExam/' + examId2;
-			        },
-			        error: function (xhr, status, error) {
-			            console.error(xhr.responseText);
-			            alert('Error updating exam status: ' + xhr.responseText);
-			        }
-			    });
-				
-			}
-			$('#publish').click(publishExam);
-		});
-		
+         
 		 document.getElementById('addQuestionBtn').addEventListener('click', function() {
 		    var questionForm = document.getElementById('questionForm');
 		    if (questionForm.style.display === 'none' || questionForm.style.display === '') {
@@ -343,6 +311,26 @@
 		        var questionId = $(this).data('question-id');
 		        loadQuestionAndAnswers(questionId);
 		    });
+		    
+		    let examId2 = getParameterByName('examId');
+	        let eId2 = null;
+	
+	        if (examId2) {
+	            console.log('Existing Exam ID from URL:', examId2);
+	            eId2 = examId2;
+	        } else {
+	            console.error('No Exam ID found in URL.');
+	        }
+	
+	        // Publish button click event
+	        $('#publish').click(function () {
+	            if (eId2) {
+	                publishExam(eId2);
+	            } else {
+	                alert('Exam ID is not defined.');
+	            }
+	        });
+
 		
 		    $('#saveButton').click(function () {
 		        const examName = $('#inputExam').val();
@@ -423,6 +411,7 @@
 		            contentType: 'application/json',
 		            data: JSON.stringify(examData),
 		            success: function (response) {
+						console.log('Response JSON:', JSON.stringify(response));
 		                localStorage.removeItem("questionId");
 		                const newExamId = response.examId;
 		                localStorage.setItem('examIdRes', newExamId);
@@ -430,6 +419,7 @@
 		                RefreshTableToGetQues(newExamId);
 		                getExamDetails(newExamId);
 		                eId = newExamId; 
+		                eId2 = newExamId;
 		                console.log('ExamId for replace from save function', eId);
 		
 		            },
@@ -445,7 +435,29 @@
 		        }
 		
 		    });
-		
+		    function publishExam(examId) {
+	            let isPublished = false;
+	            isPublished = !isPublished;
+	            let currentTime = Date.now();
+	            console.log('Current Time:', currentTime);
+	            localStorage.setItem('currentTime_' + examId, currentTime.toString());
+	            $.ajax({
+	                type: 'PUT',
+	                url: '/exams/' + examId + '/status',
+	                contentType: 'application/json',
+	                data: JSON.stringify({ status: isPublished }),
+	                success: function(response) {
+	                    console.log(response);
+	                    window.location.href = '/ongoingExam/' + examId;
+	                },
+	                error: function(xhr, status, error) {
+	                    console.error(xhr.responseText);
+	                    alert('Error updating exam status: ' + xhr.responseText);
+	                }
+	            });
+	        }
+	
+			
 		});
 	
 	function updateTableWithQuestion(response) {
@@ -497,7 +509,7 @@
 	        }
 	    });
 	}
-	
+	var examDateTime = null;
 	$(document).ready(function() {
 	    $.ajax({
 	        url: '/exam/' + examId2, 
@@ -513,12 +525,14 @@
 	            eId = response.examId;  
             	console.log('ExamId for replace from getDetails', eId);
 	             examIdValue = response.examId;
+	             examDateTime = new Date(response.dateTime);
 	        },
 	        error: function(xhr, status, error) {
 	            console.log('Error:', error);
 	        }
 	    });
 	});
+	
 	
 	//question details
 	let questionIdValue;
@@ -572,7 +586,7 @@
         });
     });
    
-   //refresh the question table meka athule get exam call karanna
+   //refresh the question table
 	function RefreshTableToGetQues(examId) {
 	    console.log('Refreshing table for examId:', examId);
 	    $("#questable tbody").load(location.href + " #questable tbody > *", function() {
@@ -584,6 +598,7 @@
 	            var questionId = $(this).data('question-id');
 	            loadQuestionAndAnswers(questionId);
 	        });
+	        
 	    });
 	}
 
@@ -621,21 +636,21 @@
 	    const minDate = `${year}-${month}-${day}T${hours}:${minutes}`;
 	    dateTimeInput.setAttribute('min', minDate);
 	
-	    // Disable manual input of datetime
+	    // Disable manual input for datetime
 	    dateTimeInput.addEventListener('keydown', function(e) {
 	        e.preventDefault();
 	    });
 	
-	    // Continuously check the current time against the exam datetime
+	    //check current time with exam datetime
 	    setInterval(function() {
-	        const examDateTime = new Date(dateTimeInput.value);
+		//console.log("ExamDatetime**",examDateTime);
+	        const examDateTime1 = new Date(dateTimeInput.value);
 	        const currentTime = new Date();
 	
-	        if (currentTime >= examDateTime) {
-	            // Trigger the publish button click
+	        if (currentTime >= examDateTime1) {
 	            publishButton.click();
 	        }
-	    }, 1000); // Check every second
+	    }, 1000);
 	});
         
   </script>

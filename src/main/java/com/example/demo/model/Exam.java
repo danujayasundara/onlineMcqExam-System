@@ -10,6 +10,7 @@ import java.util.Set;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -33,7 +34,7 @@ public class Exam {
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private LocalDateTime lastUpdate;
 	private int duration;
-	@Column(name = "e_status") // Assuming the column name is "e_status" in your database
+	@Column(name = "e_status") 
     private boolean eStatus;
 	private boolean endExamStatus;
 	
@@ -42,7 +43,7 @@ public class Exam {
 	private List<ExamAttempt> examAttemptsExam;
 	
 	@OneToMany(mappedBy = "exam", fetch = FetchType.EAGER)
-	@JsonIgnore
+	@JsonManagedReference
 	private List<Question> questions = new ArrayList<>();
 	
 	@ManyToOne(fetch = FetchType.EAGER)

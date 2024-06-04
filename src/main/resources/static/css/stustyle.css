@@ -256,9 +256,9 @@ input[type="radio"]{
 
 
 .nav-button:disabled {
-    color: #ccc; /* Change the text color */
-    background-color:darkgrey; /* Change the background color */
-    border-color: #ddd; /* Change the border color */
+    color: #ccc; 
+    background-color:darkgrey; 
+    border-color: #ddd; 
 }
 
 /* search exam*/

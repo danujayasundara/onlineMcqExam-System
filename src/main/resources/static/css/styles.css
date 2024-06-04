@@ -32,13 +32,11 @@ header h1 {
 
 /*register & login*/
 .register-cont, .login-cont {
-  /* Style the registration container */
   text-align: center;
   padding: 20px;
 }
 
 .register-cont label {
-  /* Style labels for better readability */
   display: block;
   margin-bottom: 5px;
 }
@@ -47,7 +45,6 @@ header h1 {
 .register-cont input[type="password"],
 .register-cont input[type="text"],
 .register-cont select {
-  /* Style input fields and select element */
   width: 70%;
   padding: 10px;
   margin-bottom: 15px;

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
@@ -28,6 +29,7 @@ public class Question {
 	
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "exam_id")
+	@JsonBackReference
 	private Exam exam;
 	
 	@OneToMany(mappedBy = "question", fetch = FetchType.EAGER, cascade = CascadeType.ALL)

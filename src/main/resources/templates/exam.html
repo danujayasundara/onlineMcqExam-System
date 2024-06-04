@@ -8,14 +8,10 @@
     <style>
     	.pagination {
             display: flex;
-            justify-content: flex-end; /* Aligns pagination to the right */
+            justify-content: flex-end; 
             margin-top: 20px;
         }
-        .pagination {
-            display: flex;
-            justify-content: flex-end; /* Aligns pagination to the right */
-            margin-top: 20px;
-        }
+        
         .pagination button {
 			width: 100px;
 			margin-left: 5px;
@@ -23,8 +19,8 @@
 		}
 		
 		.pagination button:disabled {
-            background-color: #d3d3d3; /* Disabled button background color */
-            cursor: not-allowed; /* Change cursor to not-allowed when button is disabled */
+            background-color: #d3d3d3; 
+            cursor: not-allowed; 
         }
         
     </style>
@@ -105,7 +101,7 @@
 		    const examName = document.getElementById("searchInput").value.trim();
 		    const userId = sessionStorage.getItem('userId');
 		    const pageSize = 10;
-		    const page = 0; // Start from the first page when searching
+		    const page = 0; 
 		    
 		    fetch(`/user/${userId}/exams?page=${page}&size=${pageSize}&examName=${encodeURIComponent(examName)}`)
 		        .then(response => {
@@ -116,10 +112,8 @@
 		        })
 		        .then(data => {
 		            if (data.content.length === 0) {
-		                // Display an alert if no exams are found
 		                alert('No exams found for the entered name.');
 		            } else {
-		                // Store fetched exams in localStorage
 		                sessionStorage.setItem('filteredExams', JSON.stringify(data.content));
 		                console.log("Total pages",data.totalPages);
 		                populateTable(data.content);
@@ -148,7 +142,6 @@
 		    fetch(`/user/${userId}/exams?page=${page}&size=${size}`)
 		        .then(response => response.json())
 		        .then(data => {
-		            // Store fetched exams in localStorage
 		            sessionStorage.setItem('exams', JSON.stringify(data.content));
 		            populateTable(data.content);
 		            updatePageInfo(data.number, data.totalPages);

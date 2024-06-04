@@ -219,12 +219,9 @@ public class QuestionController {
 	      boolean examEndedAndNotAttempted = questionServiceImpl.hasExamEndedAndNotAttempted(examId, userId);
 	      boolean userAttendedExam = questionServiceImpl.hasUserAttendedExam(attId);
 
-	      // Redirect to result page if the exam ended and not attempted or if user attended
 	      if (examEndedAndNotAttempted || userAttendedExam) {
-	          // Call the calculateResultUsingAttemptId method
 	          questionServiceImpl.calculateResultUsingAttemptId(attId, session);
 
-	          // Add attributes to the model from the session
 	          model.addAttribute("result", session.getAttribute("result"));
 	          model.addAttribute("passFail", session.getAttribute("passFail"));
 	          model.addAttribute("grade", session.getAttribute("grade"));
